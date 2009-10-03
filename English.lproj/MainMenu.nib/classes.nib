@@ -1,0 +1,55 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {
+                aboutIconClicked = id; 
+                addClicked = id; 
+                closeLicense = id; 
+                contactClicked = id; 
+                recalculateClicked = id; 
+                removeClicked = id; 
+                saveClicked = id; 
+                showAbout = id; 
+                showLicense = id; 
+                stopClicked = id; 
+            }; 
+            CLASS = SPSuperSFV; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                "button_add" = NSButton; 
+                "button_closeLicense" = NSButton; 
+                "button_contact" = NSButton; 
+                "button_easterEgg" = NSButton; 
+                "button_recalculate" = NSButton; 
+                "button_remove" = NSButton; 
+                "button_save" = NSButton; 
+                "button_showLicense" = NSButton; 
+                "button_stop" = NSButton; 
+                "panel_license" = NSPanel; 
+                "popUpButton_checksum" = NSPopUpButton; 
+                "progressBar_progress" = NSProgressIndicator; 
+                "tableView_fileList" = NSTableView; 
+                "textField_errorCount" = NSTextField; 
+                "textField_failedCount" = NSTextField; 
+                "textField_fileCount" = NSTextField; 
+                "textField_status" = NSTextField; 
+                "textField_verifiedCount" = NSTextField; 
+                "textField_version" = NSTextField; 
+                "textView_credits" = NSTextView; 
+                "textView_license" = NSTextView; 
+                "view_add" = NSView; 
+                "view_checksum" = NSView; 
+                "view_recalculate" = NSView; 
+                "view_remove" = NSView; 
+                "view_save" = NSView; 
+                "view_stop" = NSView; 
+                "window_about" = NSWindow; 
+                "window_main" = NSWindow; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = SPTableView; LANGUAGE = ObjC; SUPERCLASS = NSTableView; }
+    ); 
+    IBVersion = 1; 
+}
