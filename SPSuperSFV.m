@@ -357,19 +357,25 @@
         }
         
         SPFileEntry *newEntry = [[SPFileEntry alloc] init];
+        NSDictionary *newDict;
         
         if (![hash isEqualToString:@""])
-            [newEntry setProperties:[[NSMutableDictionary alloc] 
+            newDict = [[NSMutableDictionary alloc] 
                         initWithObjects:[NSArray arrayWithObjects:[[hash uppercaseString] isEqualToString:result]?[NSImage imageNamed:@"button_ok"]:[NSImage imageNamed:@"button_cancel"],
                             file, [hash uppercaseString], result, nil] 
-                                forKeys:[newEntry defaultKeys]]];
+                                forKeys:[newEntry defaultKeys]];
         else
-            [newEntry setProperties:[[NSMutableDictionary alloc] 
+            newDict = [[NSMutableDictionary alloc] 
                         initWithObjects:[NSArray arrayWithObjects:[NSImage imageNamed:@"button_ok"],
                             file, result, result, nil]
-                                forKeys:[newEntry defaultKeys]]];
+                                forKeys:[newEntry defaultKeys]];
+        
+        [newEntry setProperties:newDict];
+        [newDict release];
         
         [records addObject:newEntry];
+        [newEntry release];
+
         [self performSelectorOnMainThread:@selector(updateUI) withObject:nil waitUntilDone:YES];
 	}
     // 4 times I had to add this LAME! C'mon Apple, get yer thread on!
@@ -468,7 +474,6 @@
     NSString *file;
     
     while (file = [e nextObject]) {
-        SPFileEntry *newEntry = [[SPFileEntry alloc] init];
         if ([[[file lastPathComponent] substringWithRange:NSMakeRange(0, 1)] isEqualToString:@"."])
             continue;  // ignore hidden files
         if ([[[file pathExtension] lowercaseString] isEqualToString:@"sfv"]) {
@@ -486,11 +491,17 @@
                 }
                 continue;
             }
-            [newEntry setProperties:[[NSMutableDictionary alloc] 
+
+            SPFileEntry *newEntry = [[SPFileEntry alloc] init];
+            NSDictionary *newDict = [[NSMutableDictionary alloc] 
                         initWithObjects:[NSArray arrayWithObjects:[NSImage imageNamed: @"button_cancel.png"], file, @"", @"", nil] 
-                                forKeys:[newEntry defaultKeys]]];
+                                forKeys:[newEntry defaultKeys]];
             
+            [newEntry setProperties:newDict];
+            [newDict release];
+
             [pendingFiles enqueue:newEntry];
+            [newEntry release];
         }
     }
 }
@@ -505,7 +516,6 @@
         int errc = 0; // error count
         NSString *newPath;
         NSString *hash;
-        SPFileEntry *newEntry = [[SPFileEntry alloc] init];
         
         entry = [entry stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
         if ([entry isEqualToString:@""])
@@ -516,36 +526,48 @@
         NSRange r = [entry rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@" "] options:NSBackwardsSearch];
         newPath = [[filepath stringByDeletingLastPathComponent] stringByAppendingPathComponent:[entry substringToIndex:r.location]];
         hash = [entry substringFromIndex:(r.location+1)]; // +1 so we don't capture the space
-         
+
+        SPFileEntry *newEntry = [[SPFileEntry alloc] init];
+        NSDictionary *newDict;
+        
         // file doesn't exist...
         if (![[NSFileManager defaultManager] fileExistsAtPath:newPath]) {
-            [newEntry setProperties:[[NSMutableDictionary alloc] 
+            newDict = [[NSMutableDictionary alloc] 
                         initWithObjects:[NSArray arrayWithObjects:[NSImage imageNamed: @"error.png"], newPath, hash, @"Missing", nil] 
-                                forKeys:[newEntry defaultKeys]]];
+                                forKeys:[newEntry defaultKeys]];
+            [newEntry setProperties:newDict];
+            [newDict release];
             errc++;
         }
         
         // length doesn't match CRC32, MD5 or SHA-1 respectively
         if ([hash length] != 8 && [hash length] != 32 && [hash length] != 40) {
-            [newEntry setProperties:[[NSMutableDictionary alloc] 
+            newDict = [[NSMutableDictionary alloc] 
                         initWithObjects:[NSArray arrayWithObjects:[NSImage imageNamed: @"error.png"],newPath, 
                                             @"Unknown (not recognized)",[[newEntry properties] objectForKey:@"result"], nil] 
-                                forKeys:[newEntry defaultKeys]]];
+                                forKeys:[newEntry defaultKeys]];
+
+            [newEntry setProperties:newDict];
+            [newDict release];
             errc++;
         }
-        
+
         // if theres an error, then we don't need to continue with this entry
         if (errc) {
             [records addObject:newEntry];
+            [newEntry release];
             [self updateUI];
             continue;
         }
         // assume it'll fail until proven otherwise
-        [newEntry setProperties:[[NSMutableDictionary alloc] 
+        newDict = [[NSMutableDictionary alloc] 
                         initWithObjects:[NSArray arrayWithObjects:[NSImage imageNamed: @"button_cancel.png"], newPath, hash, @"", nil] 
-                                forKeys:[newEntry defaultKeys]]];
+                                forKeys:[newEntry defaultKeys]];
         
+        [newEntry setProperties:newDict];
+        [newDict release];
         [pendingFiles enqueue:newEntry];
+        [newEntry release];
     }
 }
 
