@@ -23,7 +23,7 @@
 
 typedef unsigned char u8;
 
-@interface SPSuperSFV : NSObject
+@interface SPSuperSFV : NSObject <NSToolbarDelegate>
 {
     IBOutlet NSButton *button_add;
     IBOutlet NSButton *button_closeLicense;

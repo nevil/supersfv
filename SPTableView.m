@@ -20,11 +20,6 @@
 #import "SPTableView.h"
 
 @implementation SPTableView
-- (NSArray *)getSelectedPaths
-{
-	return [[self dataSource] getSelectedPaths];
-}
-
 - (void)keyDown:(NSEvent *)theEvent
 {
     switch ([theEvent keyCode])

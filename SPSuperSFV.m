@@ -214,7 +214,7 @@
 - (IBAction)showLicense:(id)sender
 {
     NSString *licensePath = [[NSBundle mainBundle] pathForResource:@"License" ofType:@"txt"];
-    [textView_license setString:[NSString stringWithContentsOfFile:licensePath]];
+    [textView_license setString:[NSString stringWithContentsOfFile:licensePath usedEncoding:NULL error:NULL]];
     
     [NSApp beginSheet:panel_license
        modalForWindow:window_about
@@ -284,7 +284,7 @@
                  *result;
         
         NSFileManager *dm = [NSFileManager defaultManager];
-        NSDictionary *fileAttributes = [dm fileAttributesAtPath:file traverseLink:NO];
+        NSDictionary *fileAttributes = [dm attributesOfItemAtPath:file error:NULL];
         
 
         algorithm = (![hash isEqualToString:@""]) ? ([hash length] == 8) ? 0 : ([hash length] == 32) ? 1 : ([hash length] == 40) ? 2 : 0 : [popUpButton_checksum indexOfSelectedItem];
@@ -416,7 +416,7 @@
 {
 	NSIndexSet *rows = [tableView_fileList selectedRowIndexes];
 	
-	unsigned current_index = [rows lastIndex];
+	NSUInteger current_index = [rows lastIndex];
     while (current_index != NSNotFound) {
         [records removeObjectAtIndex:current_index];
         current_index = [rows indexLessThanIndex:current_index];
@@ -484,7 +484,7 @@
         } else {
             // recurse directories (I didn't feel like using NSDirectoryEnumerator)
             if ([dm fileExistsAtPath:file isDirectory:&isDir] && isDir) {
-                NSArray *dirContents = [dm directoryContentsAtPath:file];
+                NSArray *dirContents = [dm contentsOfDirectoryAtPath:file error:NULL];
                 int i;
                 for (i = 0; i < [dirContents count]; i++) {
                     [self processFiles:[NSArray arrayWithObject:[file stringByAppendingPathComponent:[dirContents objectAtIndex:i]]]];
@@ -508,7 +508,7 @@
 
 - (void)parseSFVFile:(NSString *) filepath
 {
-    NSArray *contents = [[NSString stringWithContentsOfFile:filepath] componentsSeparatedByString:@"\n"];
+    NSArray *contents = [[NSString stringWithContentsOfFile:filepath usedEncoding:NULL error:NULL] componentsSeparatedByString:@"\n"];
     NSString *entry;
     NSEnumerator *e = [contents objectEnumerator];
     
