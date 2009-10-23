@@ -60,7 +60,7 @@
     [cell release];
     cell = [[NSImageCell alloc] initImageCell:nil];
     
-    // selecting items our table view and pressing the delete key
+    // selecting items in our table view and pressing the delete key
     [[NSNotificationCenter defaultCenter] addObserver:self 
                                              selector:@selector(removeSelectedRecords:) 
                                                  name:@"RM_RECORD_FROM_LIST" 
