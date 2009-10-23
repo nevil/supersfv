@@ -85,24 +85,6 @@
     return YES;
 }
 
-/*- (NSApplicationTerminateReply) applicationShouldTerminate: (NSApplication *) sender
-{
-        if ([records count] > 0) {
-            NSBeginAlertSheet(@"Confirm Quit", @"Quit", @"Cancel", nil, window_main, self,
-                              @selector(quitSheetDidEnd:returnCode:contextInfo:),
-                              nil, nil, @"You seem to still have some unfinished business here bud, sure you want to quit?");
-            return NSTerminateLater;
-        }
-    return NSTerminateNow;
-}
-
-- (void) quitSheetDidEnd: (NSWindow *) sheet returnCode: (int) returnCode
-             contextInfo: (void *) contextInfo
-{
-    [NSApp stopModal];
-    [NSApp replyToApplicationShouldTerminate: returnCode == NSAlertDefaultReturn];
-}*/
-
 - (void) applicationWillTerminate: (NSNotification *) notification
 {
     // dealloc, etc
@@ -294,12 +276,15 @@
         if (inFile == NULL)
             break;
         
-        [self performSelectorOnMainThread:@selector(initProgress:) withObject:[NSArray arrayWithObjects:
-            [NSString stringWithFormat:@"Performing %@ on %@", [popUpButton_checksum itemTitleAtIndex:algorithm],
-                [file lastPathComponent]],
-            [NSNumber numberWithDouble:0.0], 
-            [fileAttributes objectForKey:NSFileSize], nil] waitUntilDone:YES];
-        
+        [self performSelectorOnMainThread:@selector(initProgress:)
+                               withObject:[NSArray arrayWithObjects:
+                                           [NSString stringWithFormat:@"Performing %@ on %@", [popUpButton_checksum itemTitleAtIndex:algorithm],
+                                            [file lastPathComponent]],
+                                           [NSNumber numberWithDouble:0.0], 
+                                           [fileAttributes objectForKey:NSFileSize],
+                                           nil]
+                            waitUntilDone:YES];
+
         do_endProgress++; // don't care about doing endProgress unless the progress has been init-ed
         
         crc32_t crc;
@@ -329,10 +314,13 @@
                     SHA1_Update(&sha_ctx, data, bytes);
                     break;
             }
-            [self performSelectorOnMainThread:@selector(updateProgress:) withObject:[NSArray arrayWithObjects:
-                [NSNumber numberWithDouble:[progressBar_progress doubleValue]+(double)bytes], @"", nil] waitUntilDone:YES];                
+
+            [self performSelectorOnMainThread:@selector(updateProgress:)
+                                   withObject:[NSArray arrayWithObjects:
+                                               [NSNumber numberWithDouble:(double)bytes], @"", nil]
+                                waitUntilDone:NO];
         }
-        
+
         fclose(inFile);
         
         if (!continueProcessing)
@@ -572,12 +560,13 @@
 }
 
 // expects an NSArray containing:
-// (NSNumber *)currentProgress, (NSString *)description
+// (NSNumber *)progressDelta, (NSString *)description
 - (void)updateProgress:(NSArray *)args
 {
     if (![[args objectAtIndex:1] isEqualToString:@""])
         [textField_status setStringValue:[args objectAtIndex:1]];
-    [progressBar_progress setDoubleValue:[[args objectAtIndex:0] doubleValue]];
+
+    [progressBar_progress incrementBy:[[args objectAtIndex:0] doubleValue]];
 }
 
 // expects an NSArray containing:
