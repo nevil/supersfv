@@ -19,11 +19,13 @@
 
 #import <Cocoa/Cocoa.h>
 
+#import "SPFileEntry.h"
+
 
 @interface SPIntegrityOperation : NSOperation {
-	NSString *filePath;
+	SPFileEntry *fileEntry;
 }
 
-- (id)initWithPath:(NSString *)path;
+- (id)initWithFileEntry:(SPFileEntry *)entry;
 
 @end

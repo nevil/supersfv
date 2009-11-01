@@ -73,8 +73,6 @@ typedef unsigned char u8;
 - (void)parseSFVFile:(NSString *) filepath;
 - (void)processFiles:(NSArray *) filenames;
 - (void)removeSelectedRecords:(id) sender;
-- (void)fileAddingThread;
-- (void)addFiles:(NSTimer *)timer;
 - (void)didEndSaveSheet:(NSSavePanel *)savePanel returnCode:(int)returnCode contextInfo:(void *)contextInfo;
 - (void)didEndOpenSheet:(NSOpenPanel *)openPanel returnCode:(int)returnCode contextInfo:(void *)contextInfo;
 - (void)didEndRemoveAllSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
