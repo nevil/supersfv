@@ -19,7 +19,6 @@
 
 #import <Cocoa/Cocoa.h>
 #import "SPTableView.h"
-#import "AIQueue.h"
 
 typedef unsigned char u8;
 
@@ -52,7 +51,7 @@ typedef unsigned char u8;
     
     NSMutableArray *records;
     NSImageCell *cell;
-    AIQueue *pendingFiles;
+    NSOperationQueue *queue;
     NSAutoreleasePool *autoreleasePool;
     BOOL continueProcessing;
 }

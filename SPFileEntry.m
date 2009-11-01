@@ -22,9 +22,10 @@
 
 @implementation SPFileEntry
 
-- (id) init
+- (id)init
 {
-    if (self = [super init]) {
+    if (self = [super init])
+    {
         NSImage *img = [[NSImage alloc] init];
         NSArray *values = [NSArray arrayWithObjects: img, @"/", @"", @"", nil];
         keys   = [NSArray arrayWithObjects: @"status", @"filepath", @"expected", @"result", nil]; 
@@ -35,7 +36,7 @@
     return self;
 }
 
-- (void) setProperties: (NSDictionary *)newProperties
+- (void)setProperties: (NSDictionary *)newProperties
 {
     if (properties != newProperties)
     {

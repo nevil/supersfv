@@ -44,13 +44,13 @@
 - (void)applicationWillFinishLaunching:(NSNotification *)notification
 {
     records = [[NSMutableArray alloc] init];
-    pendingFiles = [[AIQueue alloc] init];
+    queue = [[NSOperationQueue alloc] init];
     [NSThread detachNewThreadSelector:@selector(fileAddingThread) toTarget:self withObject:nil];
-    
+
     continueProcessing = YES;
-    
+
     [self setup_toolbar];
-    
+
     // this is for the 'status' image
     cell = [[NSImageCell alloc] initImageCell:nil];
     NSTableColumn *tableColumn;
@@ -59,21 +59,21 @@
     [tableColumn setDataCell:cell];
     [cell release];
     cell = [[NSImageCell alloc] initImageCell:nil];
-    
+
     // selecting items in our table view and pressing the delete key
     [[NSNotificationCenter defaultCenter] addObserver:self 
                                              selector:@selector(removeSelectedRecords:) 
                                                  name:@"RM_RECORD_FROM_LIST" 
                                                object:nil];
-    
+
     // register for drag and drop on the table view
     [tableView_fileList registerForDraggedTypes: 
         [NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
-    
+
     // make the window pertee and show it
     [button_stop setEnabled:NO];
     [self updateUI];
-    
+
     [window_main center];
     [window_main makeKeyAndOrderFront:nil];
 }
@@ -88,7 +88,8 @@
 - (void) applicationWillTerminate: (NSNotification *) notification
 {
     // dealloc, etc
-    [pendingFiles release]; pendingFiles = nil;
+    [queue release];
+    queue = nil;
 }
 
 #pragma mark IBActions

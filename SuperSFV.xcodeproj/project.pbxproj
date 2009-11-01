@@ -15,9 +15,6 @@
 		4E283F5F0AB657F9007B4BFC /* SuperSFVHelp in Resources */ = {isa = PBXBuildFile; fileRef = 4E283F5C0AB657F9007B4BFC /* SuperSFVHelp */; };
 		4E4AC9570AB7E6130046762E /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 4E4AC9550AB7E6120046762E /* Credits.rtf */; };
 		4E4AC9580AB7E6130046762E /* License.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4E4AC9560AB7E6130046762E /* License.txt */; };
-		4E515BDF0AB4E1DF00B2BE93 /* AIQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E515BDA0AB4E1DF00B2BE93 /* AIQueue.m */; };
-		4E515BE00AB4E1DF00B2BE93 /* AILinkedList.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E515BDC0AB4E1DF00B2BE93 /* AILinkedList.m */; };
-		4E515BE10AB4E1DF00B2BE93 /* AILinkedListObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E515BDE0AB4E1DF00B2BE93 /* AILinkedListObject.m */; };
 		4E593D220AB33F450092AE43 /* 1downarrow.png in Resources */ = {isa = PBXBuildFile; fileRef = 4E593D210AB33F450092AE43 /* 1downarrow.png */; };
 		4E593D6E0AB3465E0092AE43 /* SPTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E593D6D0AB3465E0092AE43 /* SPTableView.m */; };
 		4E593DD90AB353A60092AE43 /* SPFileEntry.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E593DD80AB353A60092AE43 /* SPFileEntry.m */; };
@@ -32,6 +29,7 @@
 		4E707D9D0AB0C86C00138F41 /* StatusSep.png in Resources */ = {isa = PBXBuildFile; fileRef = 4E707D9B0AB0C86C00138F41 /* StatusSep.png */; };
 		4E707D9E0AB0C86C00138F41 /* StatusBorder.png in Resources */ = {isa = PBXBuildFile; fileRef = 4E707D9C0AB0C86C00138F41 /* StatusBorder.png */; };
 		4E971A930AB0FCF0005F28B2 /* SPSuperSFV.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E971A920AB0FCF0005F28B2 /* SPSuperSFV.m */; };
+		6D9FD368109DD83600729576 /* SPIntegrityOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D9FD367109DD83600729576 /* SPIntegrityOperation.m */; };
 		8D11072A0486CEB800E47090 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* MainMenu.nib */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
@@ -55,12 +53,6 @@
 		4E283F5C0AB657F9007B4BFC /* SuperSFVHelp */ = {isa = PBXFileReference; lastKnownFileType = folder; path = SuperSFVHelp; sourceTree = "<group>"; };
 		4E4AC9550AB7E6120046762E /* Credits.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 		4E4AC9560AB7E6130046762E /* License.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = License.txt; sourceTree = "<group>"; };
-		4E515BD90AB4E1DE00B2BE93 /* AIQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIQueue.h; sourceTree = "<group>"; };
-		4E515BDA0AB4E1DF00B2BE93 /* AIQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIQueue.m; sourceTree = "<group>"; };
-		4E515BDB0AB4E1DF00B2BE93 /* AILinkedList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AILinkedList.h; sourceTree = "<group>"; };
-		4E515BDC0AB4E1DF00B2BE93 /* AILinkedList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AILinkedList.m; sourceTree = "<group>"; };
-		4E515BDD0AB4E1DF00B2BE93 /* AILinkedListObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AILinkedListObject.h; sourceTree = "<group>"; };
-		4E515BDE0AB4E1DF00B2BE93 /* AILinkedListObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AILinkedListObject.m; sourceTree = "<group>"; };
 		4E593D210AB33F450092AE43 /* 1downarrow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 1downarrow.png; sourceTree = "<group>"; };
 		4E593D6C0AB3465E0092AE43 /* SPTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPTableView.h; sourceTree = "<group>"; };
 		4E593D6D0AB3465E0092AE43 /* SPTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPTableView.m; sourceTree = "<group>"; };
@@ -79,6 +71,8 @@
 		4E707D9C0AB0C86C00138F41 /* StatusBorder.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = StatusBorder.png; sourceTree = "<group>"; };
 		4E971A910AB0FCF0005F28B2 /* SPSuperSFV.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPSuperSFV.h; sourceTree = "<group>"; };
 		4E971A920AB0FCF0005F28B2 /* SPSuperSFV.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPSuperSFV.m; sourceTree = "<group>"; };
+		6D9FD366109DD83600729576 /* SPIntegrityOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPIntegrityOperation.h; sourceTree = "<group>"; };
+		6D9FD367109DD83600729576 /* SPIntegrityOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPIntegrityOperation.m; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* SuperSFV.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SuperSFV.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -98,18 +92,14 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				4E515BD90AB4E1DE00B2BE93 /* AIQueue.h */,
-				4E515BDA0AB4E1DF00B2BE93 /* AIQueue.m */,
-				4E515BDB0AB4E1DF00B2BE93 /* AILinkedList.h */,
-				4E515BDC0AB4E1DF00B2BE93 /* AILinkedList.m */,
-				4E515BDD0AB4E1DF00B2BE93 /* AILinkedListObject.h */,
-				4E515BDE0AB4E1DF00B2BE93 /* AILinkedListObject.m */,
 				4E971A910AB0FCF0005F28B2 /* SPSuperSFV.h */,
 				4E971A920AB0FCF0005F28B2 /* SPSuperSFV.m */,
 				4E593D6C0AB3465E0092AE43 /* SPTableView.h */,
 				4E593D6D0AB3465E0092AE43 /* SPTableView.m */,
 				4E593DD70AB353A60092AE43 /* SPFileEntry.h */,
 				4E593DD80AB353A60092AE43 /* SPFileEntry.m */,
+				6D9FD366109DD83600729576 /* SPIntegrityOperation.h */,
+				6D9FD367109DD83600729576 /* SPIntegrityOperation.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -286,9 +276,7 @@
 				4E593D6E0AB3465E0092AE43 /* SPTableView.m in Sources */,
 				4E593DD90AB353A60092AE43 /* SPFileEntry.m in Sources */,
 				4E593E6B0AB371450092AE43 /* crc32.c in Sources */,
-				4E515BDF0AB4E1DF00B2BE93 /* AIQueue.m in Sources */,
-				4E515BE00AB4E1DF00B2BE93 /* AILinkedList.m in Sources */,
-				4E515BE10AB4E1DF00B2BE93 /* AILinkedListObject.m in Sources */,
+				6D9FD368109DD83600729576 /* SPIntegrityOperation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
