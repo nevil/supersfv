@@ -50,6 +50,7 @@
     NSMutableArray *records;
     NSImageCell *cell;
     NSOperationQueue *queue;
+    NSTimer *updateUITimer;
 }
 - (IBAction)aboutIconClicked:(id)sender;
 - (IBAction)addClicked:(id)sender;

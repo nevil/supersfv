@@ -45,6 +45,14 @@
     // TODO: We want to run several ops at the same time in the future
     [queue setMaxConcurrentOperationCount:1];
 
+    updateUITimer = [[NSTimer scheduledTimerWithTimeInterval:0.5
+                                                      target:self
+                                                    selector:@selector(updateUITimer:)
+                                                    userInfo:nil
+                                                     repeats:YES] retain];
+    
+    
+    
     [self setup_toolbar];
 
     // this is for the 'status' image
@@ -257,6 +265,12 @@
     [self updateUI];
 }
 
+// Called periodically for updating the UI
+- (void)updateUITimer:(NSTimer *)timer
+{
+    [self updateUI];
+}
+
 // updates the general UI, i.e the toolbar items, and reloads the data for our tableview
 - (void)updateUI
 {
@@ -332,7 +346,9 @@
             [newEntry setProperties:newDict];
             [newDict release];
 
-            SPIntegrityOperation *integrityOp = [[SPIntegrityOperation alloc] initWithFileEntry:newEntry target:self];
+            SPIntegrityOperation *integrityOp = [[SPIntegrityOperation alloc] initWithFileEntry:newEntry
+                                                                                         target:self
+                                                                                      algorithm:[popUpButton_checksum indexOfSelectedItem]];
             [newEntry release];
 
             [queue addOperation: integrityOp];

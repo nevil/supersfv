@@ -29,8 +29,9 @@
 @interface SPIntegrityOperation : NSOperation {
 	SPFileEntry *fileEntry;
     NSObject *target;
+    int cryptoAlgorithm;
 }
 
 - (id)initWithFileEntry:(SPFileEntry *)entry target:(NSObject *)object;
-
+- (id)initWithFileEntry:(SPFileEntry *)entry target:(NSObject *)object algorithm:(int)algorithm;
 @end

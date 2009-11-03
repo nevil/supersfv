@@ -23,12 +23,18 @@
 
 - (id)initWithFileEntry:(SPFileEntry *)entry target:(NSObject *)object
 {
+    return [self initWithFileEntry:entry target:object algorithm:-1];
+}
+
+- (id)initWithFileEntry:(SPFileEntry *)entry target:(NSObject *)object algorithm:(int)algorithm
+{
     if (self = [super init])
     {
         fileEntry = [entry retain];
         target = object;
+        cryptoAlgorithm = algorithm;
     }
-
+    
     return self;
 }
 
@@ -61,7 +67,7 @@
         NSDictionary *fileAttributes = [dm attributesOfItemAtPath:file error:NULL];
 
 
-        if (![hash isEqualToString:@""])
+        if (cryptoAlgorithm == -1)
         {
             switch ([hash length])
             {
@@ -81,13 +87,8 @@
         }
         else
         {
-            // TODO: Fix access to button value
-            algorithm = 0;
-//            algorithm = [popUpButton_checksum indexOfSelectedItem];
+            algorithm = cryptoAlgorithm;
         }
-
-//
-//        algorithm = (![hash isEqualToString:@""]) ? ([hash length] == 8) ? 0 : ([hash length] == 32) ? 1 : ([hash length] == 40) ? 2 : 0 : [popUpButton_checksum indexOfSelectedItem];
         
         FILE *inFile = fopen([file cStringUsingEncoding:NSUTF8StringEncoding], "rb");
         
@@ -187,8 +188,6 @@
 //        [records addObject:newEntry];
         [target addRecordObject:newEntry];
         [newEntry release];
-        
-        [target performSelectorOnMainThread:@selector(updateUI) withObject:nil waitUntilDone:YES];
 
 cancelled:
         if (doEndProgress)
