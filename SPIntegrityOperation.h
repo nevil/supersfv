@@ -28,8 +28,9 @@
 
 @interface SPIntegrityOperation : NSOperation {
 	SPFileEntry *fileEntry;
+    NSObject *target;
 }
 
-- (id)initWithFileEntry:(SPFileEntry *)entry;
+- (id)initWithFileEntry:(SPFileEntry *)entry target:(NSObject *)object;
 
 @end

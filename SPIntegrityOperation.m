@@ -21,11 +21,12 @@
 
 @implementation SPIntegrityOperation
 
-- (id)initWithFileEntry:(SPFileEntry *)entry
+- (id)initWithFileEntry:(SPFileEntry *)entry target:(NSObject *)object
 {
     if (self = [super init])
     {
         fileEntry = [entry retain];
+        target = object;
     }
 
     return self;
@@ -93,7 +94,7 @@
         if (inFile == NULL)
             goto cancelled;
         
-        [self performSelectorOnMainThread:@selector(initProgress:)
+        [target performSelectorOnMainThread:@selector(initProgress:)
                                withObject:[NSArray arrayWithObjects:
                                            [NSString stringWithFormat:@"Performing %@ on %@", @"CRC32", //TODO: [popUpButton_checksum itemTitleAtIndex:algorithm],
                                             [file lastPathComponent]],
@@ -132,17 +133,19 @@
                     break;
             }
 
-            NSLog(@"Progress %d\n", bytes);
 //TODO: KVC
-//            [self performSelectorOnMainThread:@selector(updateProgress:)
-//                                   withObject:[NSArray arrayWithObjects:
-//                                               [NSNumber numberWithDouble:(double)bytes], @"", nil]
-//                                waitUntilDone:NO];
+            [target performSelectorOnMainThread:@selector(updateProgress:)
+                                     withObject:[NSArray arrayWithObjects:
+                                                 [NSNumber numberWithDouble:(double)bytes], @"", nil]
+                                  waitUntilDone:NO];
         }
         
         fclose(inFile);
+
+        NSLog(@"Finished with file %@", [[fileEntry properties] objectForKey:@"filepath"]);
         
-        if (![self isCancelled])
+
+        if ([self isCancelled])
             goto cancelled;
         
         if (!algorithm) {
@@ -182,14 +185,15 @@
 
 // TODO: Make it possible to update records with the result
 //        [records addObject:newEntry];
+        [target addRecordObject:newEntry];
         [newEntry release];
         
-        [self performSelectorOnMainThread:@selector(updateUI) withObject:nil waitUntilDone:YES];
+        [target performSelectorOnMainThread:@selector(updateUI) withObject:nil waitUntilDone:YES];
 
 cancelled:
         if (doEndProgress)
         {
-            [self performSelectorOnMainThread:@selector(endProgress) withObject:nil waitUntilDone:YES];
+            [target performSelectorOnMainThread:@selector(endProgress) withObject:nil waitUntilDone:YES];
         }
     }
 

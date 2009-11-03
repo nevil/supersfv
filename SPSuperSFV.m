@@ -42,6 +42,8 @@
 {
     records = [[NSMutableArray alloc] init];
     queue = [[NSOperationQueue alloc] init];
+    // TODO: We want to run several ops at the same time in the future
+    [queue setMaxConcurrentOperationCount:1];
 
     [self setup_toolbar];
 
@@ -330,7 +332,7 @@
             [newEntry setProperties:newDict];
             [newDict release];
 
-            SPIntegrityOperation *integrityOp = [[SPIntegrityOperation alloc] initWithFileEntry:newEntry];
+            SPIntegrityOperation *integrityOp = [[SPIntegrityOperation alloc] initWithFileEntry:newEntry target:self];
             [newEntry release];
 
             [queue addOperation: integrityOp];
@@ -400,7 +402,7 @@
         [newEntry setProperties:newDict];
         [newDict release];
 
-        SPIntegrityOperation *integrityOp = [[SPIntegrityOperation alloc] initWithFileEntry:newEntry];
+        SPIntegrityOperation *integrityOp = [[SPIntegrityOperation alloc] initWithFileEntry:newEntry target:self];
         [newEntry release];
 
         [queue addOperation: integrityOp];
@@ -633,6 +635,11 @@
                             NSToolbarPrintItemIdentifier, NSToolbarCustomizeToolbarItemIdentifier,
                             NSToolbarFlexibleSpaceItemIdentifier, NSToolbarSpaceItemIdentifier,
                             NSToolbarSeparatorItemIdentifier, RemoveToolbarIdentifier, nil];
+}
+
+// TODO: Delete this when we use KVO or notifications
+- (void) addRecordObject:(NSObject *)object {
+    [records addObject:object];
 }
 
 @end
