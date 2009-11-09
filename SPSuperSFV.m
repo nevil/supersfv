@@ -45,6 +45,11 @@
     // TODO: We want to run several ops at the same time in the future
     [queue setMaxConcurrentOperationCount:1];
 
+    [queue addObserver:self
+            forKeyPath:@"operationCount"
+               options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld)
+               context:NULL];
+
     updateUITimer = [[NSTimer scheduledTimerWithTimeInterval:0.5
                                                       target:self
                                                     selector:@selector(updateUITimer:)
@@ -244,6 +249,41 @@
     [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"mailto:reikonmusha@gmail.com"]];
 }
 
+#pragma mark KVO handling
+- (void)observeValueForKeyPath:(NSString *)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary *)change
+                       context:(void *)context
+{
+    if ([keyPath isEqual:@"operationCount"])
+    {
+        NSUInteger oldCount, newCount;
+
+        oldCount = [[change objectForKey:NSKeyValueChangeOldKey] unsignedIntegerValue];
+        newCount = [[change objectForKey:NSKeyValueChangeNewKey] unsignedIntegerValue];
+
+        if (oldCount == 0 && newCount > 0)
+        {
+            NSNumber *newNumber;
+
+            newNumber = [[NSNumber alloc] initWithUnsignedInteger:newCount];
+            [newNumber retain];
+            [self performSelectorOnMainThread:@selector(startProcessingQueue:) withObject:newNumber waitUntilDone:NO];
+        }
+        else if (oldCount > 0 && newCount == 0)
+        {
+            [self performSelectorOnMainThread:@selector(stopProcessingQueue) withObject:NULL waitUntilDone:NO];
+        }
+    }
+
+    // be sure to call the super implementation
+    // if the superclass implements it
+//    [super observeValueForKeyPath:keyPath
+//                         ofObject:object
+//                           change:change
+//                          context:context];
+}
+
 #pragma mark Runloop
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
 {
@@ -426,49 +466,27 @@
     }
 }
 
-// expects an NSArray containing:
-// (NSNumber *)progressDelta, (NSString *)description
-- (void)updateProgress:(NSArray *)args
+- (void)startProcessingQueue:(NSNumber *)number
 {
-    if (![[args objectAtIndex:1] isEqualToString:@""])
-        [textField_status setStringValue:[args objectAtIndex:1]];
+    [progressBar_progress setIndeterminate:YES];
+    [progressBar_progress setHidden:NO];
+    [progressBar_progress startAnimation:self];
+    [button_stop setEnabled:YES];
+    [popUpButton_checksum setEnabled:NO];
 
-    [progressBar_progress incrementBy:[[args objectAtIndex:0] doubleValue]];
+    [textField_status setStringValue:[number stringValue]];
+    [textField_status setHidden:NO];
+    [number release];
 }
 
-// expects an NSArray containing:
-// (NSString *)description, (NSNumber *)minValue, (NSNumber *)maxValue
-- (void)initProgress:(NSArray *)args
+- (void)stopProcessingQueue
 {
-    if (![[args objectAtIndex:0] isEqualToString:@""])
-        [textField_status setStringValue:[args objectAtIndex:0]];
-    [progressBar_progress setMinValue:[[args objectAtIndex:1] doubleValue]];
-    [progressBar_progress setMaxValue:[[args objectAtIndex:2] doubleValue]];
-    [progressBar_progress setDoubleValue:0.0];
-
-    if ([progressBar_progress isHidden])
-        [progressBar_progress setHidden:NO];
-
-    if ([textField_status isHidden])
-        [textField_status setHidden:NO];
-
-    if (![button_stop isEnabled])
-        [button_stop setEnabled:YES];
-}
-
-// resets the progress bar and it's progress text to it's initial state
-- (void)endProgress
-{
-    [textField_status setStringValue:@""];
-    [textField_status setHidden:YES];
-
+    [progressBar_progress stopAnimation:self];
     [progressBar_progress setHidden:YES];
-    [progressBar_progress setMinValue:0.0];
-    [progressBar_progress setMaxValue:0.0];
-    [progressBar_progress setDoubleValue:0.0];
-
     [button_stop setEnabled:NO];
     [popUpButton_checksum setEnabled:YES];
+    [textField_status setHidden:YES];
+    [textField_status setStringValue:@""];
 }
 
 - (NSString *)_applicationVersion

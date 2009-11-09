@@ -64,9 +64,8 @@
 - (IBAction)stopClicked:(id)sender;
 
 - (void)updateUI;
-- (void)initProgress:(NSArray *)args;
-- (void)updateProgress:(NSArray *)args;
-- (void)endProgress;
+- (void)startProcessingQueue:(NSNumber *)number;
+- (void)stopProcessingQueue;
 - (void)parseSFVFile:(NSString *) filepath;
 - (void)processFiles:(NSArray *) filenames;
 - (void)removeSelectedRecords:(id) sender;
