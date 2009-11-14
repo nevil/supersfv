@@ -50,7 +50,7 @@
     NSMutableArray *records;
     NSImageCell *cell;
     NSOperationQueue *queue;
-    NSTimer *updateUITimer;
+    NSTimer *updateProgressTimer;
 }
 - (IBAction)aboutIconClicked:(id)sender;
 - (IBAction)addClicked:(id)sender;
@@ -63,9 +63,6 @@
 - (IBAction)showLicense:(id)sender;
 - (IBAction)stopClicked:(id)sender;
 
-- (void)updateUI;
-- (void)startProcessingQueue:(NSNumber *)number;
-- (void)stopProcessingQueue;
 - (void)parseSFVFile:(NSString *) filepath;
 - (void)processFiles:(NSArray *) filenames;
 - (void)removeSelectedRecords:(id) sender;
@@ -86,6 +83,4 @@
 - (NSArray *) toolbarDefaultItemIdentifiers: (NSToolbar *) toolbar;
 - (NSArray *) toolbarAllowedItemIdentifiers: (NSToolbar *) toolbar;
 
-// TODO: Delete this when we use KVO or notifications
-- (void) addRecordObject:(NSObject *)object;
 @end

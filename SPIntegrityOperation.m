@@ -21,6 +21,8 @@
 
 @implementation SPIntegrityOperation
 
+@synthesize hash;
+
 - (id)initWithFileEntry:(SPFileEntry *)entry target:(NSObject *)object
 {
     return [self initWithFileEntry:entry target:object algorithm:-1];
@@ -56,8 +58,7 @@
         uint8_t data[1024], *dgst; // buffers
         
         NSString *file = [[fileEntry properties] objectForKey:@"filepath"];
-        NSString *hash = [[fileEntry properties] objectForKey:@"expected"];
-        NSString *result;
+        NSString *expectedHash = [[fileEntry properties] objectForKey:@"expected"];
 
         NSFileManager *dm = [NSFileManager defaultManager];
         NSDictionary *fileAttributes = [dm attributesOfItemAtPath:file error:NULL];
@@ -65,7 +66,7 @@
 
         if (cryptoAlgorithm == -1)
         {
-            switch ([hash length])
+            switch ([expectedHash length])
             {
                 case 8:
                     algorithm = 0;
@@ -127,12 +128,6 @@
                     SHA1_Update(&sha_ctx, data, bytes);
                     break;
             }
-
-//TODO: KVC
-//            [target performSelectorOnMainThread:@selector(updateProgress:)
-//                                     withObject:[NSArray arrayWithObjects:
-//                                                 [NSNumber numberWithDouble:(double)bytes], @"", nil]
-//                                  waitUntilDone:NO];
         }
         
         fclose(inFile);
@@ -144,9 +139,9 @@
             goto cancelled;
         
         if (!algorithm) {
-            result = [[NSString stringWithFormat:@"%08x", crc] uppercaseString];
+            hash = [[NSString stringWithFormat:@"%08x", crc] uppercaseString];
         } else {
-            result = @"";
+            hash = @"";
             dgst = (uint8_t *) calloc (((algorithm == 1)?32:40), sizeof(uint8_t));
             
             if (algorithm == 1)
@@ -156,33 +151,33 @@
             
             int i;
             for (i = 0; i < ((algorithm == 1)?16:20); i++)
-                result = [[result stringByAppendingFormat:@"%02x", dgst[i]] uppercaseString];
+                hash = [[[self hash] stringByAppendingFormat:@"%02x", dgst[i]] uppercaseString];
             
             free(dgst);
         }
         
-        SPFileEntry *newEntry = [[SPFileEntry alloc] init];
+        /* SPFileEntry *newEntry = [[SPFileEntry alloc] init];
         NSDictionary *newDict;
-        
-        if (![hash isEqualToString:@""])
+
+        if (![expectedHash isEqualToString:@""])
             newDict = [[NSMutableDictionary alloc]
-                       initWithObjects:[NSArray arrayWithObjects:[[hash uppercaseString] isEqualToString:result]?[NSImage imageNamed:@"button_ok"]:[NSImage imageNamed:@"button_cancel"],
-                                        file, [hash uppercaseString], result, nil]
+                       initWithObjects:[NSArray arrayWithObjects:[[expectedHash uppercaseString] isEqualToString:result]?[NSImage imageNamed:@"button_ok"]:[NSImage imageNamed:@"button_cancel"],
+                                        file, [expectedHash uppercaseString], result, nil]
                        forKeys:[newEntry defaultKeys]];
         else
             newDict = [[NSMutableDictionary alloc]
                        initWithObjects:[NSArray arrayWithObjects:[NSImage imageNamed:@"button_ok"],
                                         file, result, result, nil]
                        forKeys:[newEntry defaultKeys]];
-        
+
         [newEntry setProperties:newDict];
         [newDict release];
 
-// TODO: Make it possible to update records with the result
-//        [records addObject:newEntry];
+        // TODO: Make it possible to update records with the result
+        //        [records addObject:newEntry];
         [target addRecordObject:newEntry];
         [newEntry release];
-
+         */
 
     }
 cancelled:

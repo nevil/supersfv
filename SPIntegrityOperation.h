@@ -27,10 +27,14 @@
 
 
 @interface SPIntegrityOperation : NSOperation {
+@private
 	SPFileEntry *fileEntry;
     NSObject *target;
     int cryptoAlgorithm;
+    NSString *hash;
 }
+
+@property (readonly) NSString *hash;
 
 - (id)initWithFileEntry:(SPFileEntry *)entry target:(NSObject *)object;
 - (id)initWithFileEntry:(SPFileEntry *)entry target:(NSObject *)object algorithm:(int)algorithm;

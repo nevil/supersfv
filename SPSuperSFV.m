@@ -29,6 +29,14 @@
 #define StopToolbarIdentifier        @"Stop Toolbar Identifier"
 #define SaveToolbarIdentifier        @"Save Toolbar Identifier"
 
+#pragma mark Private methods
+@interface SPSuperSFV (private)
+- (void)queueEntry:(SPFileEntry *)entry withAlgorithm:(int)algorithm;
+- (void)updateUI;
+- (void)startProcessingQueue;
+- (void)stopProcessingQueue;
+@end
+
 @implementation SPSuperSFV
 
 #pragma mark Initialization (App launching)
@@ -44,19 +52,6 @@
     queue = [[NSOperationQueue alloc] init];
     // TODO: We want to run several ops at the same time in the future
     [queue setMaxConcurrentOperationCount:1];
-
-    [queue addObserver:self
-            forKeyPath:@"operationCount"
-               options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld)
-               context:NULL];
-
-    updateUITimer = [[NSTimer scheduledTimerWithTimeInterval:0.5
-                                                      target:self
-                                                    selector:@selector(updateUITimer:)
-                                                    userInfo:nil
-                                                     repeats:YES] retain];
-    
-    
     
     [self setup_toolbar];
 
@@ -97,6 +92,11 @@
 - (void) applicationWillTerminate: (NSNotification *) notification
 {
     // dealloc, etc
+
+    [updateProgressTimer invalidate];
+    updateProgressTimer = nil;
+
+    [queue cancelAllOperations];
     [queue release];
     queue = nil;
 }
@@ -255,7 +255,7 @@
                         change:(NSDictionary *)change
                        context:(void *)context
 {
-    if ([keyPath isEqual:@"operationCount"])
+    /* if ([keyPath isEqual:@"operationCount"])
     {
         NSUInteger oldCount, newCount;
 
@@ -275,7 +275,7 @@
             [self performSelectorOnMainThread:@selector(stopProcessingQueue) withObject:NULL waitUntilDone:NO];
         }
     }
-
+     */
     // be sure to call the super implementation
     // if the superclass implements it
 //    [super observeValueForKeyPath:keyPath
@@ -305,10 +305,39 @@
     [self updateUI];
 }
 
-// Called periodically for updating the UI
-- (void)updateUITimer:(NSTimer *)timer
+- (void)startProcessingQueue
 {
+    [progressBar_progress setIndeterminate:YES];
+    [progressBar_progress setHidden:NO];
+    [progressBar_progress startAnimation:self];
+    [button_stop setEnabled:YES];
+    [popUpButton_checksum setEnabled:NO];
+    [textField_status setHidden:NO];
+}
+
+- (void)stopProcessingQueue
+{
+    [progressBar_progress stopAnimation:self];
+    [progressBar_progress setHidden:YES];
+    [button_stop setEnabled:NO];
+    [popUpButton_checksum setEnabled:YES];
+    [textField_status setHidden:YES];
+    [textField_status setStringValue:@""];
+}
+
+// Called periodically for updating the UI
+- (void)updateProgress:(NSTimer *)timer
+{
+	if ([queue operationCount] == 0)
+	{
+		[timer invalidate];
+        updateProgressTimer = nil;
+        [self stopProcessingQueue];
+    }
+
     [self updateUI];
+
+    [textField_status setIntegerValue:[queue operationCount]];
 }
 
 // updates the general UI, i.e the toolbar items, and reloads the data for our tableview
@@ -386,14 +415,57 @@
             [newEntry setProperties:newDict];
             [newDict release];
 
-            SPIntegrityOperation *integrityOp = [[SPIntegrityOperation alloc] initWithFileEntry:newEntry
-                                                                                         target:self
-                                                                                      algorithm:[popUpButton_checksum indexOfSelectedItem]];
+            [self queueEntry:newEntry withAlgorithm:[popUpButton_checksum indexOfSelectedItem]];
             [newEntry release];
-
-            [queue addOperation: integrityOp];
-            [integrityOp release];
         }
+    }
+}
+
+- (void)queueEntry:(SPFileEntry *)entry withAlgorithm:(int)algorithm
+{
+    SPIntegrityOperation *integrityOp;
+
+    if (algorithm == -1)
+    {
+        integrityOp = [[SPIntegrityOperation alloc] initWithFileEntry:entry
+                                                               target:self];
+    }
+    else
+    {
+        integrityOp = [[SPIntegrityOperation alloc] initWithFileEntry:entry
+                                                               target:self
+                                                            algorithm:algorithm];
+    }
+         
+    [queue addOperation: integrityOp];
+    [integrityOp release];
+
+    NSString *fileName = [[entry properties] objectForKey:@"filepath"];
+    NSString *expectedHash = [[entry properties] objectForKey:@"expected"];
+
+    SPFileEntry *newEntry = [[SPFileEntry alloc] init];
+    NSDictionary *newDict;
+
+    /* TODO: Set image indicating "in progress" */
+    newDict = [[NSMutableDictionary alloc] initWithObjects:[NSArray arrayWithObjects:
+                                                            [NSImage imageNamed:@"NSApplicationIcon"], fileName, expectedHash, @"", nil]
+                                                   forKeys:[newEntry defaultKeys]];
+    
+    [newEntry setProperties:newDict];
+    [newDict release];
+    
+    [records addObject:newEntry];
+    [newEntry release];
+    
+    /* If this was the first operation added to the queue */
+    if ([queue operationCount] == 1)
+    {
+        [self startProcessingQueue];
+        updateProgressTimer = [[NSTimer scheduledTimerWithTimeInterval:0.5
+                                                                target:self
+                                                              selector:@selector(updateProgress:)
+                                                              userInfo:nil
+                                                               repeats:YES] retain];
     }
 }
 
@@ -458,35 +530,9 @@
         [newEntry setProperties:newDict];
         [newDict release];
 
-        SPIntegrityOperation *integrityOp = [[SPIntegrityOperation alloc] initWithFileEntry:newEntry target:self];
+        [self queueEntry:newEntry withAlgorithm:-1];
         [newEntry release];
-
-        [queue addOperation: integrityOp];
-        [integrityOp release];
     }
-}
-
-- (void)startProcessingQueue:(NSNumber *)number
-{
-    [progressBar_progress setIndeterminate:YES];
-    [progressBar_progress setHidden:NO];
-    [progressBar_progress startAnimation:self];
-    [button_stop setEnabled:YES];
-    [popUpButton_checksum setEnabled:NO];
-
-    [textField_status setStringValue:[number stringValue]];
-    [textField_status setHidden:NO];
-    [number release];
-}
-
-- (void)stopProcessingQueue
-{
-    [progressBar_progress stopAnimation:self];
-    [progressBar_progress setHidden:YES];
-    [button_stop setEnabled:NO];
-    [popUpButton_checksum setEnabled:YES];
-    [textField_status setHidden:YES];
-    [textField_status setStringValue:@""];
 }
 
 - (NSString *)_applicationVersion
@@ -669,11 +715,6 @@
                             NSToolbarPrintItemIdentifier, NSToolbarCustomizeToolbarItemIdentifier,
                             NSToolbarFlexibleSpaceItemIdentifier, NSToolbarSpaceItemIdentifier,
                             NSToolbarSeparatorItemIdentifier, RemoveToolbarIdentifier, nil];
-}
-
-// TODO: Delete this when we use KVO or notifications
-- (void) addRecordObject:(NSObject *)object {
-    [records addObject:object];
 }
 
 @end
