@@ -53,7 +53,6 @@ typedef unsigned char u8;
     NSMutableArray *records;
     NSImageCell *cell;
     AIQueue *pendingFiles;
-    NSAutoreleasePool *autoreleasePool;
     BOOL continueProcessing;
 }
 - (IBAction)aboutIconClicked:(id)sender;

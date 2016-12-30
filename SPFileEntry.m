@@ -29,7 +29,6 @@
         NSArray *values = [NSArray arrayWithObjects: img, @"/", @"", @"", nil];
         keys   = [NSArray arrayWithObjects: @"status", @"filepath", @"expected", @"result", nil]; 
         
-        [img release];
         properties = [[NSMutableDictionary alloc] initWithObjects: values forKeys: keys];
     }
     return self;
@@ -39,7 +38,6 @@
 {
     if (properties != newProperties)
     {
-        [properties autorelease];
         properties = [[NSMutableDictionary alloc] initWithDictionary: newProperties];
     }    
 }

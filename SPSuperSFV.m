@@ -56,7 +56,6 @@
     tableColumn = [tableView_fileList tableColumnWithIdentifier:@"status"];
     [cell setEditable: YES];
     [tableColumn setDataCell:cell];
-    [cell release];
     cell = [[NSImageCell alloc] initImageCell:nil];
     
     // selecting items in our table view and pressing the delete key
@@ -87,7 +86,7 @@
 - (void) applicationWillTerminate: (NSNotification *) notification
 {
     // dealloc, etc
-    [pendingFiles release]; pendingFiles = nil;
+    pendingFiles = nil;
 }
 
 #pragma mark IBActions
@@ -123,7 +122,6 @@
     for (i = 0; i < [t count]; i++)
         [self processFiles:[NSArray arrayWithObject:[[[t objectAtIndex:i] properties] objectForKey:@"filepath"]]];
 	[self updateUI];
-	[t release];
 }
 
 - (IBAction)removeClicked:(id)sender
@@ -219,7 +217,7 @@
 {
     // Credits
     NSAttributedString *creditsString;
-    creditsString = [[[NSAttributedString alloc] initWithPath:[[NSBundle mainBundle] pathForResource:@"Credits" ofType:@"rtf"] documentAttributes:nil] autorelease];
+    creditsString = [[NSAttributedString alloc] initWithPath:[[NSBundle mainBundle] pathForResource:@"Credits" ofType:@"rtf"] documentAttributes:nil];
     [[textView_credits textStorage] setAttributedString:creditsString];
     
     // Version
@@ -250,8 +248,8 @@
 {
 	SPFileEntry *content;
     int do_endProgress = 0; // we use this to make sure we only call endProgress when needed
-    
-	while ((content = [pendingFiles dequeue])) {
+
+    while ((content = [pendingFiles dequeue])) {
         if (!continueProcessing)
             break;
         
@@ -358,10 +356,8 @@
                                 forKeys:[newEntry defaultKeys]];
         
         [newEntry setProperties:newDict];
-        [newDict release];
         
         [records addObject:newEntry];
-        [newEntry release];
 
         [self performSelectorOnMainThread:@selector(updateUI) withObject:nil waitUntilDone:YES];
 	}
@@ -375,9 +371,6 @@
     if (do_endProgress) {
         [self performSelectorOnMainThread:@selector(endProgress) withObject:nil waitUntilDone:YES];
     }
-    
-    [autoreleasePool release];
-    autoreleasePool = [[NSAutoreleasePool alloc] init];
 }
 
 // adds files to the tableview, which means it also starts hashing them and all the other fun stuff
@@ -385,17 +378,15 @@
 {
 	NSTimer *fileAddingTimer;
 	
-	autoreleasePool = [[NSAutoreleasePool alloc] init];
-	fileAddingTimer = [[NSTimer scheduledTimerWithTimeInterval:0.5
+	fileAddingTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
                                                            target:self
                                                          selector:@selector(addFiles:)
                                                          userInfo:nil
-                                                          repeats:YES] retain];
+                                                          repeats:YES];
 	
 	CFRunLoopRun();
 	
-	[fileAddingTimer invalidate]; [fileAddingTimer release];
-	[autoreleasePool release];
+	[fileAddingTimer invalidate];
 }
 
 // remove selected records from our table view
@@ -485,10 +476,8 @@
                                 forKeys:[newEntry defaultKeys]];
             
             [newEntry setProperties:newDict];
-            [newDict release];
 
             [pendingFiles enqueue:newEntry];
-            [newEntry release];
         }
     }
 }
@@ -523,7 +512,6 @@
                         initWithObjects:[NSArray arrayWithObjects:[NSImage imageNamed: @"error.png"], newPath, hash, @"Missing", nil] 
                                 forKeys:[newEntry defaultKeys]];
             [newEntry setProperties:newDict];
-            [newDict release];
             errc++;
         }
         
@@ -535,14 +523,12 @@
                                 forKeys:[newEntry defaultKeys]];
 
             [newEntry setProperties:newDict];
-            [newDict release];
             errc++;
         }
 
         // if theres an error, then we don't need to continue with this entry
         if (errc) {
             [records addObject:newEntry];
-            [newEntry release];
             [self updateUI];
             continue;
         }
@@ -552,9 +538,7 @@
                                 forKeys:[newEntry defaultKeys]];
         
         [newEntry setProperties:newDict];
-        [newDict release];
         [pendingFiles enqueue:newEntry];
-        [newEntry release];
     }
 }
 
@@ -669,14 +653,13 @@
 	[records removeAllObjects];
 	[records addObjectsFromArray:sorted];
 	[self updateUI];
-	[sorted release];
 }
 
 
 #pragma mark Toolbar
 - (void)setup_toolbar
 {
-    NSToolbar *toolbar = [[[NSToolbar alloc] initWithIdentifier: SuperSFVToolbarIdentifier] autorelease];
+    NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier: SuperSFVToolbarIdentifier];
     
     [toolbar setAllowsUserCustomization: YES];
     [toolbar setAutosavesConfiguration: YES];
@@ -693,7 +676,7 @@
     
     if ([itemIdent isEqual: AddToolbarIdentifier]) {
         
-        toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier: itemIdent] autorelease];
+        toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier: itemIdent];
 
         [toolbarItem setLabel: @"Add"];
         [toolbarItem setPaletteLabel: @"Add"];
@@ -705,7 +688,7 @@
         
     } else if ([itemIdent isEqual: RemoveToolbarIdentifier]) {
         
-        toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier: itemIdent] autorelease];
+        toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier: itemIdent];
         
         [toolbarItem setLabel: @"Remove"];
         [toolbarItem setPaletteLabel: @"Remove"];
@@ -717,7 +700,7 @@
         
     } else if ([itemIdent isEqual: RecalculateToolbarIdentifier]) {
         
-        toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier: itemIdent] autorelease];
+        toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier: itemIdent];
 
         [toolbarItem setLabel: @"Recalculate"];
         [toolbarItem setPaletteLabel: @"Recalculate"];
@@ -729,7 +712,7 @@
         
     } else if ([itemIdent isEqual: StopToolbarIdentifier]) {
         
-        toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier: itemIdent] autorelease];
+        toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier: itemIdent];
         
         [toolbarItem setLabel: @"Stop"];
         [toolbarItem setPaletteLabel: @"Stop"];
@@ -741,7 +724,7 @@
         
     } else if ([itemIdent isEqual: SaveToolbarIdentifier]) {
         
-        toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier: itemIdent] autorelease];
+        toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier: itemIdent];
 
         [toolbarItem setLabel: @"Save"];
         [toolbarItem setPaletteLabel: @"Save"];
@@ -753,7 +736,7 @@
         
     } else if ([itemIdent isEqual: ChecksumToolbarIdentifier]) {
         
-        toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier: itemIdent] autorelease];
+        toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier: itemIdent];
 
         [toolbarItem setLabel: @"Checksum"];
         [toolbarItem setPaletteLabel: @"Checksum"];
