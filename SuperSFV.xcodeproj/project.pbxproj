@@ -333,7 +333,6 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				OTHER_LDFLAGS = "-lcrypto";
 				PRODUCT_BUNDLE_IDENTIFIER = com.reikon.SuperSFV;
 				PRODUCT_NAME = SuperSFV;
 				WRAPPER_EXTENSION = app;
@@ -350,7 +349,6 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				OTHER_LDFLAGS = "-lcrypto";
 				PRODUCT_BUNDLE_IDENTIFIER = com.reikon.SuperSFV;
 				PRODUCT_NAME = SuperSFV;
 				WRAPPER_EXTENSION = app;

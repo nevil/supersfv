@@ -20,8 +20,7 @@
 #import "SPSuperSFV.h"
 #import "SPFileEntry.h"
 
-#include <openssl/md5.h>
-#include <openssl/sha.h>
+#include <CommonCrypto/CommonCrypto.h>
 #include "crc32.h"
 
 #define SuperSFVToolbarIdentifier    @"SuperSFV Toolbar Identifier"
@@ -288,15 +287,15 @@
         do_endProgress++; // don't care about doing endProgress unless the progress has been init-ed
         
         crc32_t crc;
-        MD5_CTX md5_ctx;
-        SHA_CTX sha_ctx;
+        CC_MD5_CTX md5_ctx;
+        CC_SHA1_CTX sha_ctx;
         
         if (!algorithm) {
             crc = crc32(0L,Z_NULL,0);
         } else if (algorithm == 1) {
-            MD5_Init(&md5_ctx);
+            CC_MD5_Init(&md5_ctx);
         } else { // algorithm == 2
-            SHA1_Init(&sha_ctx);
+            CC_SHA1_Init(&sha_ctx);
         }
         
         while ((bytes = fread (data, 1, 1024, inFile)) != 0) {
@@ -308,10 +307,10 @@
                     crc = crc32(crc, data, bytes);
                     break;
                 case 1:
-                    MD5_Update(&md5_ctx, data, bytes);
+                    CC_MD5_Update(&md5_ctx, data, bytes);
                     break;
                 case 2:
-                    SHA1_Update(&sha_ctx, data, bytes);
+                    CC_SHA1_Update(&sha_ctx, data, bytes);
                     break;
             }
 
@@ -333,9 +332,9 @@
                 dgst = (u8 *) calloc (((algorithm == 1)?32:40), sizeof(u8));
                 
                 if (algorithm == 1)
-                    MD5_Final(dgst,&md5_ctx);
+                    CC_MD5_Final(dgst,&md5_ctx);
                 else if (algorithm == 2)
-                    SHA1_Final(dgst,&sha_ctx);
+                    CC_SHA1_Final(dgst,&sha_ctx);
                 
                 int i;
                 for (i = 0; i < ((algorithm == 1)?16:20); i++)
