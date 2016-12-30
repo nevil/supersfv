@@ -266,7 +266,7 @@
         NSDictionary *fileAttributes = [dm attributesOfItemAtPath:file error:NULL];
         
 
-        algorithm = (![hash isEqualToString:@""]) ? ([hash length] == 8) ? 0 : ([hash length] == 32) ? 1 : ([hash length] == 40) ? 2 : 0 : [popUpButton_checksum indexOfSelectedItem];
+        algorithm = (![hash isEqualToString:@""]) ? ([hash length] == 8) ? 0 : ([hash length] == 32) ? 1 : ([hash length] == 40) ? 2 : 0 : (int)[popUpButton_checksum indexOfSelectedItem];
        
         FILE *inFile = fopen([file cStringUsingEncoding:NSUTF8StringEncoding], "rb");
         
@@ -296,7 +296,7 @@
             CC_SHA1_Init(&sha_ctx);
         }
         
-        while ((bytes = fread (data, 1, 1024, inFile)) != 0) {
+        while ((bytes = (int)fread (data, 1, 1024, inFile)) != 0) {
             if (!continueProcessing)
                 break;
             
@@ -409,7 +409,7 @@
     [button_recalculate setEnabled:([records count] > 0)];
     [button_remove setEnabled:([records count] > 0)];
     [button_save setEnabled:([records count] > 0)];
-    [textField_fileCount setIntValue:[records count]];
+    [textField_fileCount setIntValue:(int)[records count]];
     
     // other 'stats' .. may be a bit sloppy
     int error_count = 0, failure_count = 0, verified_count = 0;
@@ -605,7 +605,7 @@
 
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView
 {
-    return [records count];
+    return (int)[records count];
 }
 
 - (NSDragOperation)tableView:(NSTableView*)tv validateDrop:(id <NSDraggingInfo>)info 
