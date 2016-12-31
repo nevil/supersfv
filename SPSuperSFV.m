@@ -98,18 +98,16 @@
     [oPanel setAllowsMultipleSelection:YES];
     [oPanel setCanChooseFiles:YES];
     [oPanel setCanChooseDirectories:YES];
-    [oPanel beginSheetForDirectory:NSHomeDirectory()
-                              file:nil
-                    modalForWindow:window_main
-                     modalDelegate:self
-                    didEndSelector:@selector(didEndOpenSheet:returnCode:contextInfo:)
-                       contextInfo:NULL];
-}
-
-- (void)didEndOpenSheet:(NSOpenPanel *)openPanel returnCode:(int)returnCode contextInfo:(void *)contextInfo
-{
-    if (returnCode == NSOKButton)
-        [self processFiles:[openPanel filenames]];
+    [oPanel beginSheetModalForWindow:window_main completionHandler:^(NSInteger result) {
+        if (result == NSModalResponseOK){
+            NSArray *URLs = [oPanel URLs];
+            NSMutableArray *paths = [[NSMutableArray alloc] init];
+            for (NSURL *url in URLs) {
+                [paths addObject:url.path];
+            }
+            [self processFiles:paths];
+        }
+    }];
 }
 
 // Hmm... Is this OK?
@@ -126,22 +124,23 @@
 
 - (IBAction)removeClicked:(id)sender
 {
-    if ((![tableView_fileList numberOfSelectedRows]) && ([records count] > 0))
-        NSBeginAlertSheet(@"Confirm Removal", @"Removal All", @"Cancel", nil, window_main, self,
-                          @selector(didEndRemoveAllSheet:returnCode:contextInfo:),
-                          nil, nil, @"You sure you want to ditch all of the entries? They're so cute!");
-    else
+    if ((![tableView_fileList numberOfSelectedRows]) && ([records count] > 0)) {
+        NSAlert *alert = [NSAlert new];
+        alert.messageText = @"Confirm Removal";
+        alert.informativeText = @"You sure you want to ditch all of the entries? They're so cute!";
+        [alert addButtonWithTitle:@"Removal All"];
+        [alert addButtonWithTitle:@"Cancel"];
+        
+        [alert beginSheetModalForWindow:window_main completionHandler:^(NSModalResponse returnCode) {
+            if (returnCode == NSModalResponseOK) {
+                [records removeAllObjects];
+                [self updateUI];
+            }
+        }];
+    } else {
         [self removeSelectedRecords:nil];
-}
-
-- (void)didEndRemoveAllSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
-{
-    if (returnCode == NSOKButton) {
-        [records removeAllObjects];
-        [self updateUI];
     }
 }
-    
 
 - (IBAction)saveClicked:(id)sender
 {
@@ -151,38 +150,30 @@
     NSSavePanel *sPanel = [NSSavePanel savePanel];
     [sPanel setPrompt:@"Save"];
     [sPanel setTitle:@"Save"];
-    [sPanel setRequiredFileType:@"sfv"];
+    [sPanel setAllowedFileTypes:@[@"sfv"]];
     
-    [sPanel beginSheetForDirectory:NSHomeDirectory()
-                              file:nil
-                    modalForWindow:window_main
-                     modalDelegate:self
-                    didEndSelector:@selector(didEndSaveSheet:returnCode:contextInfo:)
-                       contextInfo:NULL];
-}
-
-- (void)didEndSaveSheet:(NSSavePanel *)savePanel returnCode:(int)returnCode contextInfo:(void *)contextInfo
-{
-    if (returnCode == NSOKButton) {
-        if ([records count]) {
-            // shameless plug to start out with
-            NSString *output = [NSString stringWithFormat:@"; Created using SuperSFV v%@ on Mac OS X", [self _applicationVersion]];
-            
-            NSEnumerator *e = [records objectEnumerator];
-            SPFileEntry *entry;
-            while (entry = [e nextObject]) {
-                if ((![[[entry properties] objectForKey:@"result"] isEqualToString:@"Missing"])
-                    && (![[[entry properties] objectForKey:@"result"] isEqualToString:@""])) {
-
-                    output = [output stringByAppendingFormat:@"\n%@ %@", 
-                                [[[entry properties] objectForKey:@"filepath"] lastPathComponent],
-                                [[entry properties] objectForKey:@"result"]];
+    [sPanel beginSheetModalForWindow:window_main completionHandler:^(NSInteger result) {
+        if (result == NSModalResponseOK){
+            if ([records count]) {
+                // shameless plug to start out with
+                NSString *output = [NSString stringWithFormat:@"; Created using SuperSFV v%@ on Mac OS X", [self _applicationVersion]];
+                
+                NSEnumerator *e = [records objectEnumerator];
+                SPFileEntry *entry;
+                while (entry = [e nextObject]) {
+                    if ((![[[entry properties] objectForKey:@"result"] isEqualToString:@"Missing"])
+                        && (![[[entry properties] objectForKey:@"result"] isEqualToString:@""])) {
+                        
+                        output = [output stringByAppendingFormat:@"\n%@ %@",
+                                  [[[entry properties] objectForKey:@"filepath"] lastPathComponent],
+                                  [[entry properties] objectForKey:@"result"]];
+                    }
                 }
+                
+                [output writeToFile:[sPanel URL].path atomically:NO encoding:NSUTF8StringEncoding error:NULL];
             }
-            
-            [output writeToFile:[savePanel filename] atomically:NO encoding:NSUTF8StringEncoding error:NULL];
         }
-    }
+    }];
 }
 
 - (IBAction)stopClicked:(id)sender
@@ -195,11 +186,7 @@
     NSString *licensePath = [[NSBundle mainBundle] pathForResource:@"License" ofType:@"txt"];
     [textView_license setString:[NSString stringWithContentsOfFile:licensePath usedEncoding:NULL error:NULL]];
     
-    [NSApp beginSheet:panel_license
-       modalForWindow:window_about
-        modalDelegate:nil
-       didEndSelector:nil
-          contextInfo:nil];
+    [window_about beginSheet:panel_license completionHandler:nil];
 }
 
 - (IBAction)closeLicense:(id)sender
@@ -216,9 +203,7 @@
 - (IBAction)showAbout:(id)sender
 {
     // Credits
-    NSAttributedString *creditsString;
-    creditsString = [[NSAttributedString alloc] initWithPath:[[NSBundle mainBundle] pathForResource:@"Credits" ofType:@"rtf"] documentAttributes:nil];
-    [[textView_credits textStorage] setAttributedString:creditsString];
+    [textView_credits readRTFDFromFile:[[NSBundle mainBundle] pathForResource:@"Credits" ofType:@"rtf"]];
     
     // Version
     [textField_version setStringValue:[self _applicationVersion]];
