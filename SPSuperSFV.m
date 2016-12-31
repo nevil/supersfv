@@ -20,8 +20,7 @@
 #import "SPSuperSFV.h"
 #import "SPFileEntry.h"
 
-#include <openssl/md5.h>
-#include <openssl/sha.h>
+#include <CommonCrypto/CommonCrypto.h>
 #include "crc32.h"
 
 #define SuperSFVToolbarIdentifier    @"SuperSFV Toolbar Identifier"
@@ -57,7 +56,6 @@
     tableColumn = [tableView_fileList tableColumnWithIdentifier:@"status"];
     [cell setEditable: YES];
     [tableColumn setDataCell:cell];
-    [cell release];
     cell = [[NSImageCell alloc] initImageCell:nil];
     
     // selecting items in our table view and pressing the delete key
@@ -88,7 +86,7 @@
 - (void) applicationWillTerminate: (NSNotification *) notification
 {
     // dealloc, etc
-    [pendingFiles release]; pendingFiles = nil;
+    pendingFiles = nil;
 }
 
 #pragma mark IBActions
@@ -100,18 +98,16 @@
     [oPanel setAllowsMultipleSelection:YES];
     [oPanel setCanChooseFiles:YES];
     [oPanel setCanChooseDirectories:YES];
-    [oPanel beginSheetForDirectory:NSHomeDirectory()
-                              file:nil
-                    modalForWindow:window_main
-                     modalDelegate:self
-                    didEndSelector:@selector(didEndOpenSheet:returnCode:contextInfo:)
-                       contextInfo:NULL];
-}
-
-- (void)didEndOpenSheet:(NSOpenPanel *)openPanel returnCode:(int)returnCode contextInfo:(void *)contextInfo
-{
-    if (returnCode == NSOKButton)
-        [self processFiles:[openPanel filenames]];
+    [oPanel beginSheetModalForWindow:window_main completionHandler:^(NSInteger result) {
+        if (result == NSModalResponseOK){
+            NSArray *URLs = [oPanel URLs];
+            NSMutableArray *paths = [[NSMutableArray alloc] init];
+            for (NSURL *url in URLs) {
+                [paths addObject:url.path];
+            }
+            [self processFiles:paths];
+        }
+    }];
 }
 
 // Hmm... Is this OK?
@@ -124,27 +120,27 @@
     for (i = 0; i < [t count]; i++)
         [self processFiles:[NSArray arrayWithObject:[[[t objectAtIndex:i] properties] objectForKey:@"filepath"]]];
 	[self updateUI];
-	[t release];
 }
 
 - (IBAction)removeClicked:(id)sender
 {
-    if ((![tableView_fileList numberOfSelectedRows]) && ([records count] > 0))
-        NSBeginAlertSheet(@"Confirm Removal", @"Removal All", @"Cancel", nil, window_main, self,
-                          @selector(didEndRemoveAllSheet:returnCode:contextInfo:),
-                          nil, nil, @"You sure you want to ditch all of the entries? They're so cute!");
-    else
+    if ((![tableView_fileList numberOfSelectedRows]) && ([records count] > 0)) {
+        NSAlert *alert = [NSAlert new];
+        alert.messageText = @"Confirm Removal";
+        alert.informativeText = @"You sure you want to ditch all of the entries? They're so cute!";
+        [alert addButtonWithTitle:@"Removal All"];
+        [alert addButtonWithTitle:@"Cancel"];
+        
+        [alert beginSheetModalForWindow:window_main completionHandler:^(NSModalResponse returnCode) {
+            if (returnCode == NSModalResponseOK) {
+                [records removeAllObjects];
+                [self updateUI];
+            }
+        }];
+    } else {
         [self removeSelectedRecords:nil];
-}
-
-- (void)didEndRemoveAllSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
-{
-    if (returnCode == NSOKButton) {
-        [records removeAllObjects];
-        [self updateUI];
     }
 }
-    
 
 - (IBAction)saveClicked:(id)sender
 {
@@ -154,38 +150,30 @@
     NSSavePanel *sPanel = [NSSavePanel savePanel];
     [sPanel setPrompt:@"Save"];
     [sPanel setTitle:@"Save"];
-    [sPanel setRequiredFileType:@"sfv"];
+    [sPanel setAllowedFileTypes:@[@"sfv"]];
     
-    [sPanel beginSheetForDirectory:NSHomeDirectory()
-                              file:nil
-                    modalForWindow:window_main
-                     modalDelegate:self
-                    didEndSelector:@selector(didEndSaveSheet:returnCode:contextInfo:)
-                       contextInfo:NULL];
-}
-
-- (void)didEndSaveSheet:(NSSavePanel *)savePanel returnCode:(int)returnCode contextInfo:(void *)contextInfo
-{
-    if (returnCode == NSOKButton) {
-        if ([records count]) {
-            // shameless plug to start out with
-            NSString *output = [NSString stringWithFormat:@"; Created using SuperSFV v%@ on Mac OS X", [self _applicationVersion]];
-            
-            NSEnumerator *e = [records objectEnumerator];
-            SPFileEntry *entry;
-            while (entry = [e nextObject]) {
-                if ((![[[entry properties] objectForKey:@"result"] isEqualToString:@"Missing"])
-                    && (![[[entry properties] objectForKey:@"result"] isEqualToString:@""])) {
-
-                    output = [output stringByAppendingFormat:@"\n%@ %@", 
-                                [[[entry properties] objectForKey:@"filepath"] lastPathComponent],
-                                [[entry properties] objectForKey:@"result"]];
+    [sPanel beginSheetModalForWindow:window_main completionHandler:^(NSInteger result) {
+        if (result == NSModalResponseOK){
+            if ([records count]) {
+                // shameless plug to start out with
+                NSString *output = [NSString stringWithFormat:@"; Created using SuperSFV v%@ on Mac OS X", [self _applicationVersion]];
+                
+                NSEnumerator *e = [records objectEnumerator];
+                SPFileEntry *entry;
+                while (entry = [e nextObject]) {
+                    if ((![[[entry properties] objectForKey:@"result"] isEqualToString:@"Missing"])
+                        && (![[[entry properties] objectForKey:@"result"] isEqualToString:@""])) {
+                        
+                        output = [output stringByAppendingFormat:@"\n%@ %@",
+                                  [[[entry properties] objectForKey:@"filepath"] lastPathComponent],
+                                  [[entry properties] objectForKey:@"result"]];
+                    }
                 }
+                
+                [output writeToFile:[sPanel URL].path atomically:NO encoding:NSUTF8StringEncoding error:NULL];
             }
-            
-            [output writeToFile:[savePanel filename] atomically:NO encoding:NSUTF8StringEncoding error:NULL];
         }
-    }
+    }];
 }
 
 - (IBAction)stopClicked:(id)sender
@@ -198,11 +186,7 @@
     NSString *licensePath = [[NSBundle mainBundle] pathForResource:@"License" ofType:@"txt"];
     [textView_license setString:[NSString stringWithContentsOfFile:licensePath usedEncoding:NULL error:NULL]];
     
-    [NSApp beginSheet:panel_license
-       modalForWindow:window_about
-        modalDelegate:nil
-       didEndSelector:nil
-          contextInfo:nil];
+    [window_about beginSheet:panel_license completionHandler:nil];
 }
 
 - (IBAction)closeLicense:(id)sender
@@ -219,9 +203,7 @@
 - (IBAction)showAbout:(id)sender
 {
     // Credits
-    NSAttributedString *creditsString;
-    creditsString = [[[NSAttributedString alloc] initWithPath:[[NSBundle mainBundle] pathForResource:@"Credits" ofType:@"rtf"] documentAttributes:nil] autorelease];
-    [[textView_credits textStorage] setAttributedString:creditsString];
+    [textView_credits readRTFDFromFile:[[NSBundle mainBundle] pathForResource:@"Credits" ofType:@"rtf"]];
     
     // Version
     [textField_version setStringValue:[self _applicationVersion]];
@@ -251,8 +233,8 @@
 {
 	SPFileEntry *content;
     int do_endProgress = 0; // we use this to make sure we only call endProgress when needed
-    
-	while ((content = [pendingFiles dequeue])) {
+
+    while ((content = [pendingFiles dequeue])) {
         if (!continueProcessing)
             break;
         
@@ -269,7 +251,7 @@
         NSDictionary *fileAttributes = [dm attributesOfItemAtPath:file error:NULL];
         
 
-        algorithm = (![hash isEqualToString:@""]) ? ([hash length] == 8) ? 0 : ([hash length] == 32) ? 1 : ([hash length] == 40) ? 2 : 0 : [popUpButton_checksum indexOfSelectedItem];
+        algorithm = (![hash isEqualToString:@""]) ? ([hash length] == 8) ? 0 : ([hash length] == 32) ? 1 : ([hash length] == 40) ? 2 : 0 : (int)[popUpButton_checksum indexOfSelectedItem];
        
         FILE *inFile = fopen([file cStringUsingEncoding:NSUTF8StringEncoding], "rb");
         
@@ -288,18 +270,18 @@
         do_endProgress++; // don't care about doing endProgress unless the progress has been init-ed
         
         crc32_t crc;
-        MD5_CTX md5_ctx;
-        SHA_CTX sha_ctx;
+        CC_MD5_CTX md5_ctx;
+        CC_SHA1_CTX sha_ctx;
         
         if (!algorithm) {
             crc = crc32(0L,Z_NULL,0);
         } else if (algorithm == 1) {
-            MD5_Init(&md5_ctx);
+            CC_MD5_Init(&md5_ctx);
         } else { // algorithm == 2
-            SHA1_Init(&sha_ctx);
+            CC_SHA1_Init(&sha_ctx);
         }
         
-        while ((bytes = fread (data, 1, 1024, inFile)) != 0) {
+        while ((bytes = (int)fread (data, 1, 1024, inFile)) != 0) {
             if (!continueProcessing)
                 break;
             
@@ -308,10 +290,10 @@
                     crc = crc32(crc, data, bytes);
                     break;
                 case 1:
-                    MD5_Update(&md5_ctx, data, bytes);
+                    CC_MD5_Update(&md5_ctx, data, bytes);
                     break;
                 case 2:
-                    SHA1_Update(&sha_ctx, data, bytes);
+                    CC_SHA1_Update(&sha_ctx, data, bytes);
                     break;
             }
 
@@ -333,9 +315,9 @@
                 dgst = (u8 *) calloc (((algorithm == 1)?32:40), sizeof(u8));
                 
                 if (algorithm == 1)
-                    MD5_Final(dgst,&md5_ctx);
+                    CC_MD5_Final(dgst,&md5_ctx);
                 else if (algorithm == 2)
-                    SHA1_Final(dgst,&sha_ctx);
+                    CC_SHA1_Final(dgst,&sha_ctx);
                 
                 int i;
                 for (i = 0; i < ((algorithm == 1)?16:20); i++)
@@ -359,10 +341,8 @@
                                 forKeys:[newEntry defaultKeys]];
         
         [newEntry setProperties:newDict];
-        [newDict release];
         
         [records addObject:newEntry];
-        [newEntry release];
 
         [self performSelectorOnMainThread:@selector(updateUI) withObject:nil waitUntilDone:YES];
 	}
@@ -376,9 +356,6 @@
     if (do_endProgress) {
         [self performSelectorOnMainThread:@selector(endProgress) withObject:nil waitUntilDone:YES];
     }
-    
-    [autoreleasePool release];
-    autoreleasePool = [[NSAutoreleasePool alloc] init];
 }
 
 // adds files to the tableview, which means it also starts hashing them and all the other fun stuff
@@ -386,17 +363,15 @@
 {
 	NSTimer *fileAddingTimer;
 	
-	autoreleasePool = [[NSAutoreleasePool alloc] init];
-	fileAddingTimer = [[NSTimer scheduledTimerWithTimeInterval:0.5
+	fileAddingTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
                                                            target:self
                                                          selector:@selector(addFiles:)
                                                          userInfo:nil
-                                                          repeats:YES] retain];
+                                                          repeats:YES];
 	
 	CFRunLoopRun();
 	
-	[fileAddingTimer invalidate]; [fileAddingTimer release];
-	[autoreleasePool release];
+	[fileAddingTimer invalidate];
 }
 
 // remove selected records from our table view
@@ -419,7 +394,7 @@
     [button_recalculate setEnabled:([records count] > 0)];
     [button_remove setEnabled:([records count] > 0)];
     [button_save setEnabled:([records count] > 0)];
-    [textField_fileCount setIntValue:[records count]];
+    [textField_fileCount setIntValue:(int)[records count]];
     
     // other 'stats' .. may be a bit sloppy
     int error_count = 0, failure_count = 0, verified_count = 0;
@@ -486,10 +461,8 @@
                                 forKeys:[newEntry defaultKeys]];
             
             [newEntry setProperties:newDict];
-            [newDict release];
 
             [pendingFiles enqueue:newEntry];
-            [newEntry release];
         }
     }
 }
@@ -524,7 +497,6 @@
                         initWithObjects:[NSArray arrayWithObjects:[NSImage imageNamed: @"error.png"], newPath, hash, @"Missing", nil] 
                                 forKeys:[newEntry defaultKeys]];
             [newEntry setProperties:newDict];
-            [newDict release];
             errc++;
         }
         
@@ -536,14 +508,12 @@
                                 forKeys:[newEntry defaultKeys]];
 
             [newEntry setProperties:newDict];
-            [newDict release];
             errc++;
         }
 
         // if theres an error, then we don't need to continue with this entry
         if (errc) {
             [records addObject:newEntry];
-            [newEntry release];
             [self updateUI];
             continue;
         }
@@ -553,9 +523,7 @@
                                 forKeys:[newEntry defaultKeys]];
         
         [newEntry setProperties:newDict];
-        [newDict release];
         [pendingFiles enqueue:newEntry];
-        [newEntry release];
     }
 }
 
@@ -622,7 +590,7 @@
 
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView
 {
-    return [records count];
+    return (int)[records count];
 }
 
 - (NSDragOperation)tableView:(NSTableView*)tv validateDrop:(id <NSDraggingInfo>)info 
@@ -670,14 +638,13 @@
 	[records removeAllObjects];
 	[records addObjectsFromArray:sorted];
 	[self updateUI];
-	[sorted release];
 }
 
 
 #pragma mark Toolbar
 - (void)setup_toolbar
 {
-    NSToolbar *toolbar = [[[NSToolbar alloc] initWithIdentifier: SuperSFVToolbarIdentifier] autorelease];
+    NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier: SuperSFVToolbarIdentifier];
     
     [toolbar setAllowsUserCustomization: YES];
     [toolbar setAutosavesConfiguration: YES];
@@ -694,7 +661,7 @@
     
     if ([itemIdent isEqual: AddToolbarIdentifier]) {
         
-        toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier: itemIdent] autorelease];
+        toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier: itemIdent];
 
         [toolbarItem setLabel: @"Add"];
         [toolbarItem setPaletteLabel: @"Add"];
@@ -706,7 +673,7 @@
         
     } else if ([itemIdent isEqual: RemoveToolbarIdentifier]) {
         
-        toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier: itemIdent] autorelease];
+        toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier: itemIdent];
         
         [toolbarItem setLabel: @"Remove"];
         [toolbarItem setPaletteLabel: @"Remove"];
@@ -718,7 +685,7 @@
         
     } else if ([itemIdent isEqual: RecalculateToolbarIdentifier]) {
         
-        toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier: itemIdent] autorelease];
+        toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier: itemIdent];
 
         [toolbarItem setLabel: @"Recalculate"];
         [toolbarItem setPaletteLabel: @"Recalculate"];
@@ -730,7 +697,7 @@
         
     } else if ([itemIdent isEqual: StopToolbarIdentifier]) {
         
-        toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier: itemIdent] autorelease];
+        toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier: itemIdent];
         
         [toolbarItem setLabel: @"Stop"];
         [toolbarItem setPaletteLabel: @"Stop"];
@@ -742,7 +709,7 @@
         
     } else if ([itemIdent isEqual: SaveToolbarIdentifier]) {
         
-        toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier: itemIdent] autorelease];
+        toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier: itemIdent];
 
         [toolbarItem setLabel: @"Save"];
         [toolbarItem setPaletteLabel: @"Save"];
@@ -754,7 +721,7 @@
         
     } else if ([itemIdent isEqual: ChecksumToolbarIdentifier]) {
         
-        toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier: itemIdent] autorelease];
+        toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier: itemIdent];
 
         [toolbarItem setLabel: @"Checksum"];
         [toolbarItem setPaletteLabel: @"Checksum"];

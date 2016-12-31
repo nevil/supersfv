@@ -53,7 +53,6 @@ typedef unsigned char u8;
     NSMutableArray *records;
     NSImageCell *cell;
     AIQueue *pendingFiles;
-    NSAutoreleasePool *autoreleasePool;
     BOOL continueProcessing;
 }
 - (IBAction)aboutIconClicked:(id)sender;
@@ -76,9 +75,6 @@ typedef unsigned char u8;
 - (void)removeSelectedRecords:(id) sender;
 - (void)fileAddingThread;
 - (void)addFiles:(NSTimer *)timer;
-- (void)didEndSaveSheet:(NSSavePanel *)savePanel returnCode:(int)returnCode contextInfo:(void *)contextInfo;
-- (void)didEndOpenSheet:(NSOpenPanel *)openPanel returnCode:(int)returnCode contextInfo:(void *)contextInfo;
-- (void)didEndRemoveAllSheet:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
 - (NSString *)_applicationVersion;
 
 - (id)tableView:(NSTableView *)table objectValueForTableColumn:(NSTableColumn *)column row:(int)row;

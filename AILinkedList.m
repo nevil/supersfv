@@ -25,14 +25,10 @@
 
 - (void)dealloc {
 	@synchronized(self) {
-		AILinkedListObject *tmp;
 		while (front != nil) {
-			tmp = front;
 			front = [front nextObject];
-			[tmp release];
 		}
 	}
-	[super dealloc];
 }
 
 // ditches all the objects..
@@ -158,8 +154,6 @@
 		}
 		else {
 			AILinkedListObject *last = [goneObject lastObject], *next = [goneObject nextObject];
-			
-			[goneObject autorelease];
 			
 			if (last == nil)
 				front = next;
